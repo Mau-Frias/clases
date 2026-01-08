@@ -1,0 +1,11 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "dist",
+        // Add these to fix the "not under rootDir" error
+        "rootDirs": ["src", "../core/src"],
+        "composite": true
+    },
+    "include": ["src/**/*"]
+}

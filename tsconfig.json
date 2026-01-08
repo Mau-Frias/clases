@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "skipLibCheck": true,
+        "isolatedModules": true,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "declaration": true,
+        "declarationMap": true,
+        "paths": {
+            "class-utilities": ["./packages/core/src/index.ts"],
+            "class-utilities-tailwind": ["./packages/tailwind/src/index.ts"]
+        }
+    },
+    "exclude": ["node_modules", "**/dist"]
+}
