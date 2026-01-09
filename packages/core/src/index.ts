@@ -7,7 +7,7 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
     const process = (key: string, value: any): string => {
         if (!value) return '';
 
-        // 1. Soporte Multilínea (Arrays)
+        // 1. Arrays: Multilínea
         if (Array.isArray(value)) {
             return value
                 .map((v) => process(key, v))
@@ -15,7 +15,7 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
                 .join(' ');
         }
 
-        // 2. Objetos de Prefijos
+        // 2. Objetos
         if (typeof value === 'object') {
             return Object.entries(value)
                 .map(([nestedKey, nestedValue]) => {
@@ -26,19 +26,25 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
                         return process(nextKey, nestedValue);
                     }
 
-                    // Lógica estándar: si no es prefijo, es una clase condicional
-                    return nestedValue ? process(key, nestedKey) : '';
+                    // CORRECCIÓN: Si es lógica { 'clase': true },
+                    // procesamos la LLAVE como el valor para que reciba el prefijo
+                    if (nestedValue) {
+                        return process(key, nestedKey);
+                    }
+
+                    return '';
                 })
                 .join(' ');
         }
 
-        // 3. Resolución y Aplicación
+        // 3. Resolución de Prefijo
         const resolvedPrefix = key
             .split(':')
             .map((part) => registry[part] || null)
             .filter(Boolean)
             .join(':');
 
+        // 4. Aplicación (Ahora sí recibirá la clase desde el paso 2)
         if (typeof value === 'string') {
             return value
                 .split(/[,\s\n]+/)
@@ -46,11 +52,11 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
                 .map((cls) => (!resolvedPrefix ? cls : `${resolvedPrefix}:${cls}`))
                 .join(' ');
         }
+
         return '';
     };
 
     return (...inputs: ClassValue[]) => {
-        // Procesamos uno a uno para capturar objetos de prefijos antes de que clsx los aplane
         const processed = inputs.map((input) => process('', input));
         return twMerge(clsx(processed));
     };
