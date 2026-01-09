@@ -7,7 +7,7 @@
         "build": "pnpm -r run build",
         "test": "vitest run",
         "dev": "pnpm -r run dev",
-        "bump:core": "pnpm --filter clases version patch --no-git-tag-version",
+        "bump:core": "pnpm --filter clases version patch",
         "pub:core": "pnpm --filter clases build && pnpm --filter clases publish",
         "bump:tw": "pnpm --filter clases-tailwind version patch --no-git-tag-version",
         "pub:tw": "pnpm --filter clases-tailwind build && pnpm --filter clases-tailwind publish"
