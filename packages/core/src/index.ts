@@ -10,7 +10,8 @@ import clsx from 'clsx';
 export function createCl<TPlugins extends Record<string, string>[]>(...plugins: TPlugins) {
     /**
      * Internal registry that stores all official prefixes.
-     * Any key not found here will be treated as "transparent" logic.
+     * Any key not found here will be treated as a "transparent" logical container
+     * and will be discarded in the final string resolution.
      */
     const registry: Record<string, string> = Object.assign({ base: 'base' }, ...plugins);
 
@@ -38,7 +39,7 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
                     /**
                      * Rule: If the child key is registered, we concatenate it.
                      * If it's not registered, it's a "logical" key (transparent),
-                     * so we inherit the parent's prefix.
+                     * so we inherit the parent's prefix to keep the path clean.
                      */
                     const isRegistered = registry[nestedKey] !== undefined;
                     const nextKey =
@@ -51,16 +52,16 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
 
         /**
          * FINAL RESOLUTION
-         * Maps aliases (e.g., 'ui') to real prefixes (e.g., 'prefix')
-         * and removes any non-registered logical parts.
+         * Maps aliases (e.g., 'ui' -> 'prefix') and filters out any part
+         * of the path that is not explicitly registered in the registry.
          */
         const resolvedPrefix = key
             .split(':')
             .map((part) => {
                 if (part === 'base') return null;
-                // Return mapped value from registry if it exists
+                // Only return the part if it's found in our registry
                 if (registry[part]) return registry[part];
-                // Otherwise, discard the part (Total Transparency)
+                // Otherwise, it's a logical container and should be ignored
                 return null;
             })
             .filter(Boolean)
