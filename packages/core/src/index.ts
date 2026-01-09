@@ -4,67 +4,57 @@ import clsx, { type ClassValue } from 'clsx';
 export function createCl<TPlugins extends Record<string, string>[]>(...plugins: TPlugins) {
     const registry: Record<string, string> = Object.assign({}, ...plugins);
 
-    // Función auxiliar para obtener el prefijo real de Tailwind
-    const getPrefix = (key: string) => {
-        return key
-            .split(':')
-            .map((part) => registry[part])
-            .filter(Boolean)
-            .join(':');
-    };
+    const process = (accumulatedPrefix: string, input: any): string => {
+        if (!input) return '';
 
-    const process = (accumulatedKey: string, value: any): string => {
-        if (!value) return '';
+        // 1. Strings: Aplicar prefijo acumulado
+        if (typeof input === 'string') {
+            return input
+                .split(/[,\s\n]+/)
+                .filter(Boolean)
+                .map((cls) => (accumulatedPrefix ? `${accumulatedPrefix}:${cls}` : cls))
+                .join(' ');
+        }
 
-        // 1. Arrays: Multilínea
-        if (Array.isArray(value)) {
-            return value
-                .map((v) => process(accumulatedKey, v))
+        // 2. Arrays: Procesar cada elemento
+        if (Array.isArray(input)) {
+            return input
+                .map((i) => process(accumulatedPrefix, i))
                 .filter(Boolean)
                 .join(' ');
         }
 
-        // 2. Objetos
-        if (typeof value === 'object') {
-            return Object.entries(value)
-                .map(([k, v]) => {
-                    if (!v) return '';
+        // 3. Objetos: El corazón del problema
+        if (typeof input === 'object') {
+            let results: string[] = [];
 
-                    // Si la llave es un prefijo (md, hover), profundizamos
-                    if (registry[k] !== undefined) {
-                        const nextKey = accumulatedKey ? `${accumulatedKey}:${k}` : k;
-                        return process(nextKey, v);
-                    }
+            for (const [key, value] of Object.entries(input)) {
+                if (!value) continue;
 
-                    // Si NO es prefijo, tratamos la llave 'k' como la clase final
-                    // Pero le aplicamos el prefijo acumulado hasta ahora
-                    return applyPrefix(accumulatedKey, k);
-                })
-                .join(' ');
-        }
+                const registeredPrefix = registry[key];
 
-        // 3. Strings directos: Aplicamos el prefijo acumulado a cada palabra
-        if (typeof value === 'string') {
-            return applyPrefix(accumulatedKey, value);
+                if (registeredPrefix) {
+                    // Es un prefijo: acumulamos y bajamos un nivel
+                    const nextPrefix = accumulatedPrefix
+                        ? `${accumulatedPrefix}:${registeredPrefix}`
+                        : registeredPrefix;
+                    results.push(process(nextPrefix, value));
+                } else {
+                    // NO es prefijo: es lógica { 'clase': true }
+                    // Procesamos la llave 'key' como el contenido, bajo el prefijo actual
+                    results.push(process(accumulatedPrefix, key));
+                }
+            }
+            return results.join(' ');
         }
 
         return '';
     };
 
-    // Función para aplicar el prefijo resuelto a un string de clases
-    const applyPrefix = (key: string, classString: string): string => {
-        const resolved = getPrefix(key);
-        if (!resolved) return classString;
-
-        return classString
-            .split(/[,\s\n]+/)
-            .filter(Boolean)
-            .map((cls) => `${resolved}:${cls}`)
-            .join(' ');
-    };
-
     return (...inputs: ClassValue[]) => {
+        // Ejecutamos nuestro motor en cada input
         const processed = inputs.map((input) => process('', input));
-        return twMerge(clsx(processed));
+        // twMerge se encarga de limpiar el string final
+        return twMerge(processed.filter(Boolean).join(' '));
     };
 }
