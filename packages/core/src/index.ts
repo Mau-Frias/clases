@@ -1,37 +1,29 @@
 import { twMerge } from 'tailwind-merge';
-import clsx, { type ClassValue } from 'clsx';
+import clsx from 'clsx';
 
 /**
- * Helper type to merge an array of objects into one single type.
- * This provides the user with full autocomplete for ALL combined plugins.
- */
-type MergePlugins<T extends Record<string, string>[]> = T extends [infer First, ...infer Rest]
-    ? First & (Rest extends Record<string, string>[] ? MergePlugins<Rest> : {})
-    : {};
-
-/**
- * Creates a customized class utility instance with plugin support.
- * * This factory function merges multiple prefix plugins and returns a scoped
- * `cl` function that handles recursive prefixing, tailwind-merge, and clsx logic.
- * * @param plugins - One or more objects defining prefix maps (e.g., { btn: 'button' }).
- * @returns A specialized `cl` function with autocompletion for the provided plugins.
- * * @example
- * const myCl = createCl({ ui: 'prefix' });
- * // Autocomplete will suggest 'ui' or 'base'
- * myCl({ ui: { primary: true } }); // 'prefix:primary'
+ * Creates a specialized utility for managing CSS classes with prefix support,
+ * plugin mapping, and transparent logical nesting.
+ * * @param plugins - An array of objects mapping custom aliases to real CSS prefixes.
+ * @returns A function that processes class values, objects, and nested structures.
  */
 export function createCl<TPlugins extends Record<string, string>[]>(...plugins: TPlugins) {
-    // Core merges all plugins into a single registry automatically
+    /**
+     * Internal registry that stores all official prefixes.
+     * Any key not found here will be treated as "transparent" logic.
+     */
     const registry: Record<string, string> = Object.assign({ base: 'base' }, ...plugins);
 
-    type CombinedKeys = keyof MergePlugins<TPlugins>;
-
     /**
-     * Internal processor to handle recursive key chaining and prefix mapping.
+     * Recursively processes keys and values to build the prefixed class string.
+     * * @param key - The current accumulated prefix path.
+     * @param value - The class value, array, or nested object to process.
+     * @returns A space-separated string of prefixed classes.
      */
     const process = (key: string, value: any): string => {
         if (!value) return '';
 
+        // Handle Arrays: Process each element with the current key
         if (Array.isArray(value)) {
             return value
                 .map((v) => process(key, v))
@@ -39,42 +31,59 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
                 .join(' ');
         }
 
+        // Handle Objects: Manage nesting and logical transparency
         if (typeof value === 'object') {
             return Object.entries(value)
                 .map(([nestedKey, nestedValue]) => {
-                    // FIX: If the nested key is 'base', it doesn't add to the prefix chain
-                    const combinedKey =
-                        key === 'base'
-                            ? nestedKey
-                            : nestedKey === 'base'
-                            ? key // If nested is base, keep the parent key
-                            : `${key}:${nestedKey}`;
+                    /**
+                     * Rule: If the child key is registered, we concatenate it.
+                     * If it's not registered, it's a "logical" key (transparent),
+                     * so we inherit the parent's prefix.
+                     */
+                    const isRegistered = registry[nestedKey] !== undefined;
+                    const nextKey =
+                        key === 'base' ? nestedKey : isRegistered ? `${key}:${nestedKey}` : key;
 
-                    return process(combinedKey, nestedValue);
+                    return process(nextKey, nestedValue);
                 })
                 .join(' ');
         }
 
-        const prefix = registry[key] || key;
+        /**
+         * FINAL RESOLUTION
+         * Maps aliases (e.g., 'ui') to real prefixes (e.g., 'prefix')
+         * and removes any non-registered logical parts.
+         */
+        const resolvedPrefix = key
+            .split(':')
+            .map((part) => {
+                if (part === 'base') return null;
+                // Return mapped value from registry if it exists
+                if (registry[part]) return registry[part];
+                // Otherwise, discard the part (Total Transparency)
+                return null;
+            })
+            .filter(Boolean)
+            .join(':');
 
+        // Apply the resolved prefix to each class in the string
         if (typeof value === 'string') {
             return value
                 .split(/[,\s\n]+/)
                 .filter(Boolean)
-                .map((cls) => (prefix === 'base' ? cls : `${prefix}:${cls}`))
+                .map((cls) => (!resolvedPrefix ? cls : `${resolvedPrefix}:${cls}`))
                 .join(' ');
         }
         return '';
     };
 
     /**
-     * Optimized class utility function.
-     * * Combines multiple arguments into a single string, resolving Tailwind conflicts
-     * and applying the plugin prefixing logic defined during creation.
-     * * @param inputs - Arguments can be strings, objects with plugin keys, or standard ClassValues.
-     * @returns A merged string of CSS classes.
+     * The final utility function.
+     * Processes inputs through the prefix engine and cleans them using tailwind-merge.
+     * * @param inputs - Variadic arguments including strings, objects, arrays, or booleans.
+     * @returns A merged and optimized string of Tailwind CSS classes.
      */
-    return (...inputs: (ClassValue | { [K in CombinedKeys | 'base' | (string & {})]?: any })[]) => {
+    return (...inputs: any[]) => {
         const processed = inputs.map((input) => {
             if (input !== null && typeof input === 'object' && !Array.isArray(input)) {
                 return Object.entries(input)

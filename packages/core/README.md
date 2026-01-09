@@ -63,8 +63,71 @@ cl({
 });
 // Result: "md:hover:scale-105 md:hover:after:content-['*']"
 ```
+---
 
+## 🌈 Beautiful Syntax & Variants
 
+The most powerful feature of this utility is **Transparent Logical Nesting**. It allows you to organize your design system using nested objects that represent your business logic (variants, states, or themes) without polluting the final CSS output.
+
+#### How it Works
+
+The engine distinguishes between **Registered Prefixes** (modifiers like `md`, `hover`, or `ui`) and **Logical Keys** (your own organizational names like `variants`, `primary`, or `[state]`):
+
+* **Registered Keys**: Concatenate to form the final CSS prefix.
+* **Unregistered Keys**: Act as transparent wrappers. They are ignored in the final string but pass the current prefix down to their children.
+
+#### Component Variants Example
+
+This structure allows you to colocate base styles, responsive modifiers, and interaction states within a single logical branch:
+
+```typescript
+const variant = 'primary';
+const theme = 'dark';
+
+const className = cl({
+  md: {
+    // 'variants' is NOT in the registry, so it is transparent
+    variants: {
+      // We select the active branch using standard JS
+      [variant]: {
+        base: 'rounded-lg px-4 py-2 transition',
+        // 'dark' is a registered prefix, so it will be mapped
+        dark: 'border-white text-white',
+        hover: 'opacity-80'
+      },
+      secondary: 'bg-gray-200 text-black'
+    }[variant]
+  }
+});
+
+/**
+ * Output (for variant 'primary'):
+ * "md:rounded-lg md:px-4 md:py-2 md:transition md:dark:border-white md:dark:text-white md:hover:opacity-80"
+ */
+```
+
+#### Why this is superior:
+
+1. **Clean DOM**: You won't see "ghost" prefixes like `variants:primary:bg-blue-500` in your HTML.
+2. **Zero Boilerplate**: You don't have to repeat `md:dark:...` for every single class; the engine handles the chain automatically.
+3. **Type-Safe Organization**: Use your own naming conventions to group styles while keeping the output perfectly compatible with Tailwind CSS.
+
+#### Best Practice: Selection Logic
+
+To keep the output optimized and prevent class collisions, handle the selection at the logical level so the engine only processes the "winning" branch:
+
+```typescript
+cl({
+  ui: {
+    [status]: {
+      success: 'text-green-600',
+      error: 'text-red-600',
+      pending: 'text-yellow-600'
+    }[status]
+  }
+});
+```
+---
 
 ### 🛠️ Custom Plugin Management
 You can stack the Tailwind plugin with your own semantic aliases or project-specific configs.
@@ -100,7 +163,6 @@ cl({
   lg: 'grid-cols-3 gap-8'
 });
 ```
-
 ---
 
 ## ⌨️ Why Objects?
