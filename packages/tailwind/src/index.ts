@@ -1,4 +1,4 @@
-import { createCu } from "class-utilities";
+import { createCl } from "clases";
 
 export const tailwindPlugin = {
     // --- Estructura y Pantallas ---
@@ -84,7 +84,7 @@ export const tailwindPlugin = {
     ltr: 'ltr'
 };
 
-export const cu = createCu(tailwindPlugin);
+export const cl = createCl(tailwindPlugin);
 
 // Export the type so users can use it in their component props
 export type TailwindKey = keyof typeof tailwindPlugin;

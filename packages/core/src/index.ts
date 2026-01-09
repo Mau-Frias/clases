@@ -9,7 +9,7 @@ type MergePlugins<T extends Record<string, string>[]> = T extends [infer First, 
     ? First & (Rest extends Record<string, string>[] ? MergePlugins<Rest> : {})
     : {};
 
-export function createCu<TPlugins extends Record<string, string>[]>(...plugins: TPlugins) {
+export function createCl<TPlugins extends Record<string, string>[]>(...plugins: TPlugins) {
     // Core merges all plugins into a single registry automatically
     const registry: Record<string, string> = Object.assign({ base: 'base' }, ...plugins);
 

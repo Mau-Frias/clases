@@ -1,5 +1,5 @@
 {
-    "name": "class-utilities",
+    "name": "clases",
     "version": "1.0.0",
     "type": "module",
     "main": "./dist/index.js",

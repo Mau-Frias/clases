@@ -8,7 +8,7 @@
         "composite": true, // Required for project references
         "declaration": true,
         "paths": {
-            "class-utilities": ["./packages/core/src/index.ts"]
+            "clases": ["./packages/core/src/index.ts"]
         }
     }
 }

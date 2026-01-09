@@ -11,8 +11,8 @@
         "declaration": true,
         "declarationMap": true,
         "paths": {
-            "class-utilities": ["./packages/core/src/index.ts"],
-            "class-utilities-tailwind": ["./packages/tailwind/src/index.ts"]
+            "clases": ["./packages/core/src/index.ts"],
+            "clases-tailwind": ["./packages/tailwind/src/index.ts"]
         }
     },
     "exclude": ["node_modules", "**/dist"]

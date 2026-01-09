@@ -29,7 +29,7 @@ importers:
 
   packages/tailwind:
     dependencies:
-      class-utilities:
+      clases:
         specifier: workspace:*
         version: link:../core
 

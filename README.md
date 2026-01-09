@@ -6,7 +6,7 @@ A high-performance, recursive, and type-safe utility for managing CSS classes. D
 
 - 🔄 **Deep Recursion:** Nest variants like `md: { hover: '...' }` to stack prefixes automatically.
 - 🛡️ **Hard Typing:** Full IntelliSense autocomplete for all Tailwind variants and custom plugins.
-- 🔌 **Stackable Plugins:** Merge multiple design systems or custom configurations into a single `cu` function.
+- 🔌 **Stackable Plugins:** Merge multiple design systems or custom configurations into a single `cl` function.
 - 🗜️ **Zero Overhead:** Built on top of `tailwind-merge` and `clsx` for optimal performance and conflict resolution.
 - 📦 **Monorepo Ready:** Lightweight, tree-shakable packages.
 
@@ -16,8 +16,8 @@ A high-performance, recursive, and type-safe utility for managing CSS classes. D
 
 | Package | Description |
 | :--- | :--- |
-| **class-utilities** | The recursive engine. Use this to build custom variants or plugins. |
-| **class-utilities-tailwind** | Pre-configured with all Tailwind CSS variants and type definitions. |
+| **clases** | The recursive engine. Use this to build custom variants or plugins. |
+| **clases-tailwind** | Pre-configured with all Tailwind CSS variants and type definitions. |
 
 ---
 
@@ -26,15 +26,15 @@ A high-performance, recursive, and type-safe utility for managing CSS classes. D
 ### 1. Installation
 
 ```bash
-pnpm add class-utilities-tailwind class-utilities
+pnpm add clases-tailwind clases
 ```
 
 ### 2. Basic Usage
 
 ```typescript
-import { cu } from 'class-utilities-tailwind';
+import { cl } from 'clases-tailwind';
 
-const className = cu({
+const className = cl({
   base: 'p-4 text-sm transition-all',
   hover: 'bg-blue-500 text-white',
   md: 'text-lg p-8',
@@ -53,7 +53,7 @@ const className = cu({
 Stop repeating prefixes. Nesting objects automatically stacks variants in the correct order.
 
 ```typescript
-cu({
+cl({
   md: {
     hover: {
       base: 'scale-105',
@@ -70,10 +70,10 @@ cu({
 You can stack the Tailwind plugin with your own semantic aliases or project-specific configs.
 
 ```typescript
-import { createCu } from 'class-utilities';
-import { tailwind } from 'class-utilities-tailwind';
+import { createCl } from 'clases';
+import { tailwind } from 'clases-tailwind';
 
-const cu = createCu(
+const cl = createCl(
   tailwind, 
   { 
     hocus: 'hover:focus',
@@ -81,7 +81,7 @@ const cu = createCu(
   }
 );
 
-cu({ 
+cl({ 
   hocus: 'outline-none ring-2',
   brand: 'font-bold' 
 });
@@ -91,7 +91,7 @@ cu({
 Use backticks and commas to organize large chunks of layout logic without losing readability.
 
 ```typescript
-cu({
+cl({
   base: `
     grid grid-cols-1,
     gap-4 items-center,
@@ -116,11 +116,11 @@ cu({
 
 ## 🛠️ API Reference
 
-### `cu(...inputs)`
+### `cl(...inputs)`
 The main utility function. Accepts strings, arrays, objects, or nested structures.
 
-### `createCu(...plugins)`
-Factory function to create a customized `cu` instance. Merges all provided objects into a single type-safe registry.
+### `createCl(...plugins)`
+Factory function to create a customized `cl` instance. Merges all provided objects into a single type-safe registry.
 
 ### `tailwind`
 The raw plugin data containing all Tailwind CSS variants.
