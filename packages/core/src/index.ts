@@ -1,64 +1,73 @@
 import { twMerge } from 'tailwind-merge';
 import clsx, { type ClassValue } from 'clsx';
 
-/**
- * Creates a customized Tailwind class engine instance with prefix registry support.
- * * @param plugins - Objects mapping custom aliases (e.g., 'ui') to real Tailwind prefixes (e.g., 'prefix').
- * @returns A recursive 'cl' function that processes strings, arrays, and objects.
- * * @example
- * const tw = createCl({ md: 'md', ui: 'prefix' });
- */
 export function createCl<TPlugins extends Record<string, string>[]>(...plugins: TPlugins) {
     const registry: Record<string, string> = Object.assign({}, ...plugins);
 
-    /**
-     * Recursively processes input values to apply prefixes and logic.
-     * * @param accumulatedPrefix - The prefix path built during recursion (e.g., 'md:hover').
-     * @param input - The value to process (string, array, or object).
-     * @returns A string of prefixed and filtered Tailwind classes.
-     */
-    const process = (accumulatedPrefix: string, input: any): string => {
-        if (!input) return '';
+    const process = (accumulatedPath: string, input: any): string => {
+        console.log(`[START] Path: "${accumulatedPath}" | Input:`, input);
 
-        // 1. Strings: Resolve real Tailwind prefixes and apply them
+        if (!input) {
+            console.log(`[SKIP] Input is falsy`);
+            return '';
+        }
+
+        // 1. Caso String
         if (typeof input === 'string') {
-            const resolved = accumulatedPrefix
+            const resolvedPrefix = accumulatedPath
                 .split(':')
-                .map((part) => (part === 'base' ? null : registry[part] || null))
+                .map((part) => {
+                    if (part === 'base' || part === '?') return null;
+                    return registry[part] || part;
+                })
                 .filter(Boolean)
                 .join(':');
 
-            return input
-                .split(/[,\s\n]+/) // Split by commas, spaces, or newlines
+            const result = input
+                .split(/[,\s\n]+/)
                 .filter(Boolean)
-                .map((cls) => (resolved ? `${resolved}:${cls}` : cls))
+                .map((cls) => (resolvedPrefix ? `${resolvedPrefix}:${cls}` : cls))
                 .join(' ');
+
+            console.log(`[STRING] Resolved: "${resolvedPrefix}" | Out: "${result}"`);
+            return result;
         }
 
-        // 2. Arrays: Multi-line support and recursive processing
+        // 2. Caso Array
         if (Array.isArray(input)) {
+            console.log(`[ARRAY] Processing ${input.length} elements...`);
             return input
-                .map((i) => process(accumulatedPrefix, i))
+                .map((i) => process(accumulatedPath, i))
                 .filter(Boolean)
                 .join(' ');
         }
 
-        // 3. Objects: Prefix navigation and Conditional Logic (clsx-style)
+        // 3. Caso Objeto
         if (typeof input === 'object') {
+            console.log(`[OBJECT] Keys:`, Object.keys(input));
             return Object.entries(input)
                 .map(([key, value]) => {
-                    if (!value) return '';
+                    const isTransparent = key === 'base' || key === '?';
+                    const isRegistered = registry[key] !== undefined;
 
-                    const isBase = key === 'base';
-                    const isPrefix = registry[key] !== undefined;
+                    console.log(
+                        `  -> Key: "${key}" | Value: ${value} | isPrefix: ${isRegistered} | isTransparent: ${isTransparent}`
+                    );
 
-                    if (isBase || isPrefix) {
-                        // It's an organization node or a prefix: accumulate and dive deeper
-                        const nextPrefix = accumulatedPrefix ? `${accumulatedPrefix}:${key}` : key;
-                        return process(nextPrefix, value);
+                    if (!value) {
+                        console.log(`  [SKIP KEY] "${key}" because value is falsy`);
+                        return '';
+                    }
+
+                    if (isTransparent || isRegistered) {
+                        const newPath = accumulatedPath ? `${accumulatedPath}:${key}` : key;
+                        console.log(`  [DIVE] Moving to path: "${newPath}"`);
+                        return process(newPath, value);
                     } else {
-                        // Standard logic { 'class-name': boolean }: treat the key as the class content
-                        return process(accumulatedPrefix, key);
+                        console.log(
+                            `  [CLASS] Treating key "${key}" as class under path "${accumulatedPath}"`
+                        );
+                        return process(accumulatedPath, key);
                     }
                 })
                 .filter(Boolean)
@@ -68,14 +77,6 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
         return '';
     };
 
-    /**
-     * Main utility for generating Tailwind classes.
-     * Supports strings, nested objects with prefixes, and arrays.
-     * * @param inputs - A list of arguments following the clsx pattern.
-     * @returns A processed, deduplicated string of classes via twMerge.
-     * * @example
-     * tw('btn-base', { md: 'p-4', hover: { 'opacity-50': isDim } });
-     */
     return (...inputs: ClassValue[]) => {
         const processed = inputs.map((input) => process('', input));
         return twMerge(clsx(processed));
