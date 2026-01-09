@@ -1,6 +1,6 @@
 {
     "name": "clases-tailwind",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,9 +13,6 @@
     "scripts": {
         "build": "tsup src/index.ts --format cjs,esm --dts --clean",
         "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
-    },
-    "peerDependencies": {
-        "clases": "^1.0.0"
     },
     "dependencies": {
         "clases": "^1.0.0"

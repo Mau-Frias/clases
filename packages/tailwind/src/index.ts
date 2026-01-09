@@ -1,9 +1,8 @@
-
-
+export * from 'clases';
 
 /**
  * Configuration object containing default prefixes for Tailwind CSS.
- * * Use this to maintain consistency between your class utility and 
+ * * Use this to maintain consistency between your class utility and
  * Tailwind's variant system.
  * @example
  * // Accessing a specific prefix
