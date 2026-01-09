@@ -7,10 +7,10 @@
         "build": "pnpm -r run build",
         "test": "vitest run",
         "dev": "pnpm -r run dev",
-        "release": "pnpm build && pnpm -r --filter \"./packages/**\" publish",
-        "bump:patch": "pnpm -r --filter \"./packages/**\" version patch --no-git-tag-version",
-        "bump:minor": "pnpm -r --filter \"./packages/**\" version minor --no-git-tag-version",
-        "bump:major": "pnpm -r --filter \"./packages/**\" version major --no-git-tag-version"
+        "bump:core": "pnpm --filter clases version patch --no-git-tag-version",
+        "pub:core": "pnpm --filter clases build && pnpm --filter clases publish",
+        "bump:tw": "pnpm --filter clases-tailwind version patch --no-git-tag-version",
+        "pub:tw": "pnpm --filter clases-tailwind build && pnpm --filter clases-tailwind publish"
     },
     "devDependencies": {
         "tsup": "^8.5.1",
