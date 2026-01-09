@@ -1,4 +1,4 @@
-import { createCl } from 'clases';
+
 
 
 /**
@@ -92,22 +92,6 @@ export const tailwindPlugin = {
     rtl: 'rtl',
     ltr: 'ltr'
 };
-
-/**
- * Generates an optimized Tailwind CSS class string.
- * Combines conditional arguments and resolves Tailwind utility conflicts (using tailwind-merge).
- * * @param args - CSS classes, objects { 'class-name': boolean }, arrays, or nullish values.
- * @returns A clean string of resulting classes without duplicates or conflicts.
- * * @example
- * // Basic usage
- * tw('p-4 bg-red-500', isLarge && 'p-8') // If isLarge is true -> 'bg-red-500 p-8'
- * * // Using objects
- * tw({ 'bg-blue-500': true, 'hidden': false }) // 'bg-blue-500'
- */
-const twcl = createCl(tailwindPlugin);
-
-export {twcl,twcl as tw};
-
 
 // Export the type so users can use it in their component props
 export type TailwindKey = keyof typeof tailwindPlugin;
