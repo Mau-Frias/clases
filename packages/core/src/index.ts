@@ -4,13 +4,22 @@ import clsx, { type ClassValue } from 'clsx';
 export function createCl<TPlugins extends Record<string, string>[]>(...plugins: TPlugins) {
     const registry: Record<string, string> = Object.assign({}, ...plugins);
 
-    const process = (key: string, value: any): string => {
+    // Función auxiliar para obtener el prefijo real de Tailwind
+    const getPrefix = (key: string) => {
+        return key
+            .split(':')
+            .map((part) => registry[part])
+            .filter(Boolean)
+            .join(':');
+    };
+
+    const process = (accumulatedKey: string, value: any): string => {
         if (!value) return '';
 
         // 1. Arrays: Multilínea
         if (Array.isArray(value)) {
             return value
-                .map((v) => process(key, v))
+                .map((v) => process(accumulatedKey, v))
                 .filter(Boolean)
                 .join(' ');
         }
@@ -18,42 +27,40 @@ export function createCl<TPlugins extends Record<string, string>[]>(...plugins: 
         // 2. Objetos
         if (typeof value === 'object') {
             return Object.entries(value)
-                .map(([nestedKey, nestedValue]) => {
-                    const isPrefix = registry[nestedKey] !== undefined;
+                .map(([k, v]) => {
+                    if (!v) return '';
 
-                    if (isPrefix) {
-                        const nextKey = key ? `${key}:${nestedKey}` : nestedKey;
-                        return process(nextKey, nestedValue);
+                    // Si la llave es un prefijo (md, hover), profundizamos
+                    if (registry[k] !== undefined) {
+                        const nextKey = accumulatedKey ? `${accumulatedKey}:${k}` : k;
+                        return process(nextKey, v);
                     }
 
-                    // CORRECCIÓN: Si es lógica { 'clase': true },
-                    // procesamos la LLAVE como el valor para que reciba el prefijo
-                    if (nestedValue) {
-                        return process(key, nestedKey);
-                    }
-
-                    return '';
+                    // Si NO es prefijo, tratamos la llave 'k' como la clase final
+                    // Pero le aplicamos el prefijo acumulado hasta ahora
+                    return applyPrefix(accumulatedKey, k);
                 })
                 .join(' ');
         }
 
-        // 3. Resolución de Prefijo
-        const resolvedPrefix = key
-            .split(':')
-            .map((part) => registry[part] || null)
-            .filter(Boolean)
-            .join(':');
-
-        // 4. Aplicación (Ahora sí recibirá la clase desde el paso 2)
+        // 3. Strings directos: Aplicamos el prefijo acumulado a cada palabra
         if (typeof value === 'string') {
-            return value
-                .split(/[,\s\n]+/)
-                .filter(Boolean)
-                .map((cls) => (!resolvedPrefix ? cls : `${resolvedPrefix}:${cls}`))
-                .join(' ');
+            return applyPrefix(accumulatedKey, value);
         }
 
         return '';
+    };
+
+    // Función para aplicar el prefijo resuelto a un string de clases
+    const applyPrefix = (key: string, classString: string): string => {
+        const resolved = getPrefix(key);
+        if (!resolved) return classString;
+
+        return classString
+            .split(/[,\s\n]+/)
+            .filter(Boolean)
+            .map((cls) => `${resolved}:${cls}`)
+            .join(' ');
     };
 
     return (...inputs: ClassValue[]) => {
