@@ -8,9 +8,9 @@
         "test": "vitest run",
         "dev": "pnpm -r run dev",
         "release": "pnpm build && pnpm -r --filter \"./packages/**\" publish",
-        "bump:patch": "pnpm -r --filter \"./packages/**\" version patch",
-        "bump:minor": "pnpm -r --filter \"./packages/**\" version minor",
-        "bump:major": "pnpm -r --filter \"./packages/**\" version major"
+        "bump:patch": "pnpm -r --filter \"./packages/**\" version patch --no-git-tag-version",
+        "bump:minor": "pnpm -r --filter \"./packages/**\" version minor --no-git-tag-version",
+        "bump:major": "pnpm -r --filter \"./packages/**\" version major --no-git-tag-version"
     },
     "devDependencies": {
         "tsup": "^8.5.1",
