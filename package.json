@@ -4,13 +4,21 @@
     "author": "Mauricio Frías <mauricio.fr.or@gmail.com>",
     "license": "MIT",
     "scripts": {
-        "build": "pnpm -r run build",
         "test": "vitest run",
         "dev": "pnpm -r run dev",
+        "// --- CORE SCRIPTS ---": "",
         "bump:core": "pnpm --filter clases exec npm version patch --no-git-tag-version",
+        "bump:core:minor": "pnpm --filter clases exec npm version minor --no-git-tag-version",
+        "bump:core:major": "pnpm --filter clases exec npm version major --no-git-tag-version",
+        "publish:core": "pnpm --filter clases build && pnpm --filter clases publish",
+        "// --- TAILWIND SCRIPTS ---": "",
         "bump:tw": "pnpm --filter clases-tailwind exec npm version patch --no-git-tag-version",
-        "pub:core": "pnpm --filter clases build && pnpm --filter clases publish",
-        "pub:tw": "pnpm --filter clases-tailwind build && pnpm --filter clases-tailwind publish"
+        "bump:tw:minor": "pnpm --filter clases-tailwind exec npm version minor --no-git-tag-version",
+        "bump:tw:major": "pnpm --filter clases-tailwind exec npm version major --no-git-tag-version",
+        "publish:tw": "pnpm --filter clases-tailwind build && pnpm --filter clases-tailwind publish",
+        "// --- UTILS ---": "",
+        "build": "pnpm -r run build",
+        "publish:all": "pnpm build && pnpm -r --filter \"./packages/**\" publish --no-git-checks"
     },
     "devDependencies": {
         "tsup": "^8.5.1",

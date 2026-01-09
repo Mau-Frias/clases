@@ -1,5 +1,14 @@
-import { createCl } from "clases";
+import { createCl } from 'clases';
 
+
+/**
+ * Configuration object containing default prefixes for Tailwind CSS.
+ * * Use this to maintain consistency between your class utility and 
+ * Tailwind's variant system.
+ * * @example
+ * // Accessing a specific prefix
+ * const basePrefix = tailwindPlugin.prefix;
+ */
 export const tailwindPlugin = {
     // --- Estructura y Pantallas ---
     base: 'base',
@@ -84,7 +93,21 @@ export const tailwindPlugin = {
     ltr: 'ltr'
 };
 
-export const cl = createCl(tailwindPlugin);
+/**
+ * Generates an optimized Tailwind CSS class string.
+ * Combines conditional arguments and resolves Tailwind utility conflicts (using tailwind-merge).
+ * * @param args - CSS classes, objects { 'class-name': boolean }, arrays, or nullish values.
+ * @returns A clean string of resulting classes without duplicates or conflicts.
+ * * @example
+ * // Basic usage
+ * tw('p-4 bg-red-500', isLarge && 'p-8') // If isLarge is true -> 'bg-red-500 p-8'
+ * * // Using objects
+ * tw({ 'bg-blue-500': true, 'hidden': false }) // 'bg-blue-500'
+ */
+const twcl = createCl(tailwindPlugin);
+
+export {twcl,twcl as tw};
+
 
 // Export the type so users can use it in their component props
 export type TailwindKey = keyof typeof tailwindPlugin;

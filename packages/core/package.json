@@ -1,6 +1,6 @@
 {
     "name": "clases",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,8 +12,7 @@
     },
     "scripts": {
         "build": "tsup src/index.ts --format cjs,esm --dts --clean",
-        "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
-        "version": "pnpm build"
+        "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
     },
     "dependencies": {
         "clsx": "^2.1.1",
