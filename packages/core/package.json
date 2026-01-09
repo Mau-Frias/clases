@@ -12,7 +12,8 @@
     },
     "scripts": {
         "build": "tsup src/index.ts --format cjs,esm --dts --clean",
-        "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+        "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+        "version": "echo 'Version updated'"
     },
     "dependencies": {
         "clsx": "^2.1.1",
