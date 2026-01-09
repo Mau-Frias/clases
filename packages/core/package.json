@@ -1,6 +1,6 @@
 {
     "name": "clases",
-    "version": "1.1.16",
+    "version": "1.1.17",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,7 +15,7 @@
         "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
     },
     "peerDependencies": {
-        "clsx": "^2.1.1",
-        "tailwind-merge": "^2.6.0"
+        "clsx": ">=2.1.1",
+        "tailwind-merge": ">=2.6.0"
     }
 }
