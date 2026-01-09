@@ -5,7 +5,7 @@ import { createCl } from 'clases';
  * Configuration object containing default prefixes for Tailwind CSS.
  * * Use this to maintain consistency between your class utility and 
  * Tailwind's variant system.
- * * @example
+ * @example
  * // Accessing a specific prefix
  * const basePrefix = tailwindPlugin.prefix;
  */

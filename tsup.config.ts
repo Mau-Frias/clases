@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
     entry: ['src/index.ts'],
-    format: ['esm','cjs'], // Modern JS only for better Astro/Next.js support
+    format: ['esm','cjs'],
     dts: true, // Generates the .d.ts files for IntelliSense
     splitting: false,
     sourcemap: true,
