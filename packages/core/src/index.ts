@@ -1,53 +1,62 @@
 import { twMerge } from 'tailwind-merge';
 import clsx, { type ClassValue } from 'clsx';
 
-// Tipos para las opciones de configuración
+/**
+ * Options to customize the engine behavior.
+ */
 export interface ClOptions<B extends string, C extends string> {
+    /** The key used for static base classes. Defaults to 'base'. */
     baseKey?: B;
+    /** The key used for conditional class objects. Defaults to 'if' or '?'. */
     conditionKey?: C;
+    /** A global prefix to be applied to every utility class (e.g., 'tw-'). */
     prefix?: string;
 }
 
+/**
+ * Creates a customized class utility function with plugin support.
+ * * @param plugins - An array of registry objects mapping keys to CSS prefixes.
+ * @param options - Configuration for reserved keys and global prefixing.
+ * @returns A function that processes nested class objects and merges them using tailwind-merge.
+ */
 export function createCl<
     TPlugins extends Record<string, string>[],
     B extends string = 'base',
     C extends string = '?'
 >(plugins: TPlugins, options: ClOptions<B, C> = {}) {
-    // Unificamos los plugins en un solo registro
+    /** Unified registry from all provided plugins */
     const registry: Record<string, string> = Object.assign({}, ...plugins);
 
-    // Extraemos opciones con valores por defecto
-    const { baseKey = 'base' as B, conditionKey = 'if' as C, prefix: globalPrefix = '' } = options;
+    /** Extracted options with sensible defaults */
+    const { baseKey = 'base' as B, conditionKey = '?' as C, prefix: globalPrefix = '' } = options;
 
     /**
-     * Aplica el prefijo global de configuración (ej: 'tw-') a una clase
+     * Internal helper to apply the global prefix to a specific class.
+     * @param cls - The raw class name string.
      */
-    const applyGlobalPrefix = (cls: string) => {
+    const applyGlobalPrefix = (cls: string): string => {
         if (!globalPrefix) return cls;
-        // Evitamos prefijar si la clase ya tiene el prefijo o es vacía
-        return cls
-            .split(':')
-            .map((part) => {
-                // Solo prefijamos la clase final, no los modificadores (hover, md, etc)
-                // pero como tailwind-merge y clsx se encargan de la limpieza,
-                // aplicamos una lógica simple:
-                return part;
-            })
-            .join(':');
-        // Nota: El prefijo global de Tailwind suele aplicarse a la clase base: 'tw-bg-red'
+        // The global prefix is applied to the utility class itself,
+        // while variant modifiers (hover:, md:) remain handled by the path resolver.
+        return `${globalPrefix}${cls}`;
     };
 
+    /**
+     * Recursive processor that traverses the input structure to resolve paths and conditions.
+     * @param accumulatedPath - The current breadcrumb of prefixes (e.g., "md:hover").
+     * @param input - The current input level (string, array, or object).
+     */
     const process = (accumulatedPath: string, input: any): string => {
         if (!input) return '';
 
-        // 1. Caso String: Aquí es donde se resuelve el path acumulado
+        // 1. String Case: Resolve accumulated path and apply to each class
         if (typeof input === 'string') {
             const resolvedPrefix = accumulatedPath
                 .split(':')
                 .map((part) => {
-                    // Si la parte del path es una de las llaves especiales, no genera prefijo CSS
+                    // Skip reserved keys in the final CSS output
                     if (part === baseKey || part === conditionKey) return null;
-                    // Retornamos el valor del registro (ej: 'hover') o la parte tal cual
+                    // Return the registered modifier or the part itself
                     return registry[part] || part;
                 })
                 .filter(Boolean)
@@ -57,15 +66,13 @@ export function createCl<
                 .split(/[,\s\n]+/)
                 .filter(Boolean)
                 .map((cls) => {
-                    // Aplicamos el prefijo global a la clase
-                    const finalClass = globalPrefix ? `${globalPrefix}${cls}` : cls;
-                    // Aplicamos el prefijo acumulado (hover, md, etc)
+                    const finalClass = applyGlobalPrefix(cls);
                     return resolvedPrefix ? `${resolvedPrefix}:${finalClass}` : finalClass;
                 })
                 .join(' ');
         }
 
-        // 2. Caso Array
+        // 2. Array Case: Process each element recursively
         if (Array.isArray(input)) {
             return input
                 .map((i) => process(accumulatedPath, i))
@@ -73,7 +80,7 @@ export function createCl<
                 .join(' ');
         }
 
-        // 3. Caso Objeto
+        // 3. Object Case: Handle reserved keys, registered prefixes, or conditional classes
         if (typeof input === 'object') {
             return Object.entries(input)
                 .map(([key, value]) => {
@@ -83,12 +90,11 @@ export function createCl<
                     const isRegistered = registry[key] !== undefined;
 
                     if (isTransparent || isRegistered) {
-                        // Si es una llave especial o registrada, profundizamos en el path
+                        // If it's a reserved key or found in registry, dive deeper into the path
                         const newPath = accumulatedPath ? `${accumulatedPath}:${key}` : key;
                         return process(newPath, value);
                     } else {
-                        // Si la llave no está registrada, se trata como una clase bajo el path actual
-                        // (Aquí value actúa como condición booleana para la llave)
+                        // If the key is not in registry, treat the key as a class and value as a condition
                         return value ? process(accumulatedPath, key) : '';
                     }
                 })
@@ -99,9 +105,12 @@ export function createCl<
         return '';
     };
 
-    return (...inputs: ClassValue[]) => {
+    /**
+     * The final utility function (e.g., 'tw' or 'cl').
+     * Processes inputs and runs them through clsx and tailwind-merge.
+     */
+    return (...inputs: ClassValue[]): string => {
         const processed = inputs.map((input) => process('', input));
-        // twMerge se encarga de que 'bg-red-500 bg-blue-500' resulte en 'bg-blue-500'
         return twMerge(clsx(processed));
     };
 }
